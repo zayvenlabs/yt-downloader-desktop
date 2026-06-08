@@ -1,80 +1,68 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-type SystemInfo = {
-  platform: string;
-  arch: string;
-  node: string;
-  electron: string;
-  homeDir: string;
+type VideoInfo = {
+  title: string;
+  uploader?: string;
+  duration?: number;
+  thumbnail?: string;
+  webpage_url?: string;
 };
 
+function formatDuration(seconds?: number) {
+  if (!seconds) return "Durée inconnue";
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+}
+
 function App() {
-  const [message, setMessage] = useState("");
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [localTest, setLocalTest] = useState("");
-  const [ytDlpVersion, setYtDlpVersion] = useState("");
   const [url, setUrl] = useState("");
-  const [videoInfo, setVideoInfo] = useState<any>(null);
+  const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [videoError, setVideoError] = useState("");
   const [downloadStatus, setDownloadStatus] = useState("");
   const [downloadFolder, setDownloadFolder] = useState("");
   const [progress, setProgress] = useState<number | null>(null);
   const [progressText, setProgressText] = useState("");
 
-  async function handlePing() {
-    const response = await window.electronAPI.ping();
-    setMessage(`${response.message} - ${response.timestamp}`);
-  }
-
-  async function handleSystemInfo() {
-    const response = await window.electronAPI.getSystemInfo();
-    setSystemInfo(response);
-  }
-
-  async function handleLocalTest() {
-  const response = await window.electronAPI.runLocalTest();
-  setLocalTest(response.output);
-  }
-
-  async function handleYtDlpVersion() {
-  const response = await window.electronAPI.getYtDlpVersion();
-  setYtDlpVersion(response.version);
-  }
-
   async function handleGetVideoInfo() {
-  setVideoError("");
-  setVideoInfo(null);
+    setVideoError("");
+    setVideoInfo(null);
+    setProgress(null);
+    setProgressText("");
+    setDownloadStatus("");
 
-  try {
-    const response = await window.electronAPI.getVideoInfo(url);
-    setVideoInfo(response);
+    try {
+      const response = await window.electronAPI.getVideoInfo(url);
+      setVideoInfo(response);
     } catch (error) {
-    setVideoError("Impossible de récupérer les informations vidéo.");
-    console.error(error);
+      console.error(error);
+      setVideoError("Impossible de récupérer les informations vidéo.");
     }
   }
 
   async function handleDownloadMp4() {
-  setProgress(0);
-  setProgressText("");
-  setDownloadStatus("Téléchargement MP4 en cours...");
+    setProgress(0);
+    setProgressText("");
+    setDownloadStatus("Téléchargement MP4 en cours...");
 
-  try {
-    const response = await window.electronAPI.downloadMp4(url, downloadFolder);
-    setDownloadStatus(`Téléchargement terminé : ${response.filePath}`);
+    try {
+      const response = await window.electronAPI.downloadMp4(url, downloadFolder);
+      setDownloadStatus(`Téléchargement MP4 terminé : ${response.filePath}`);
     } catch (error) {
-    console.error(error);
-    setDownloadStatus("Téléchargement impossible.");
+      console.error(error);
+      setDownloadStatus("Téléchargement MP4 impossible.");
     }
   }
 
   async function handleDownloadMp3() {
-  setProgress(0);
-  setProgressText("");
-  setDownloadStatus("Téléchargement MP3 en cours...");
+    setProgress(0);
+    setProgressText("");
+    setDownloadStatus("Téléchargement MP3 en cours...");
 
-  try {
+    try {
       const response = await window.electronAPI.downloadMp3(url, downloadFolder);
       setDownloadStatus(`Téléchargement MP3 terminé : ${response.filePath}`);
     } catch (error) {
@@ -92,115 +80,116 @@ function App() {
   }
 
   useEffect(() => {
-  window.electronAPI.onDownloadProgress((data) => {
-    if (data.percent !== null) {
-      setProgress(data.percent);
-    }
+    window.electronAPI.onDownloadProgress((data) => {
+      if (data.percent !== null) {
+        setProgress(data.percent);
+      }
 
-    setProgressText(data.text);
-  });
+      setProgressText(data.text);
+    });
 
-  return () => {
-    window.electronAPI.removeDownloadProgressListener();
-  };
+    return () => {
+      window.electronAPI.removeDownloadProgressListener();
+    };
   }, []);
 
   return (
-    <main>
-      <h1>YT Downloader Desktop</h1>
+    <main className="app-shell">
+      <div className="noise" />
 
-      <button onClick={handlePing}>Test Electron IPC</button>
-      <button onClick={handleSystemInfo}>Get System Info</button>
-      <button onClick={handleLocalTest}>Run Local Command</button>
+      <section className="hero-panel">
+        <p className="eyebrow">LOCAL MEDIA TOOL</p>
 
-      {message && <p>{message}</p>}
+        <h1>
+          YT <span>DOWNLOADER</span>
+        </h1>
 
-      {systemInfo && (
-        <pre>
-          {JSON.stringify(systemInfo, null, 2)}
-        </pre>
-      )}
-
-      {localTest && <p>{localTest}</p>}
-
-      <button onClick={handleYtDlpVersion}>Get yt-dlp Version</button>
-      {ytDlpVersion && <p>yt-dlp version: {ytDlpVersion}</p>}
-
-      <div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Colle une URL vidéo"
-          style={{ width: "420px", padding: "8px" }}
-        />
-
-        <button onClick={handleGetVideoInfo}>
-          Get Video Info
-        </button>
-      </div>
-
-      {videoError && <p>{videoError}</p>}
-
-      {videoInfo && (
-        <div>
-          <h2>{videoInfo.title}</h2>
-          <p>{videoInfo.uploader}</p>
-          <p>{videoInfo.duration}s</p>
-
-          {videoInfo.thumbnail && (
-            <img
-              src={videoInfo.thumbnail}
-              alt={videoInfo.title}
-              style={{ width: "320px", borderRadius: "12px" }}
-            />
-          )}
-        </div>
-      )}
-
-      <button onClick={handleDownloadMp4}>Download MP4</button>
-      {downloadStatus && <p>{downloadStatus}</p>}
-
-      <button onClick={handleDownloadMp3}>Download MP3</button>
-
-      <button onClick={handleSelectFolder}>
-        Select Download Folder
-      </button>
-
-      {downloadFolder && (
-        <p>
-          Download folder: {downloadFolder}
+        <p className="subtitle">
+          Télécharge tes vidéos localement, sans serveur distant.
         </p>
-      )}
 
-      {progress !== null && (
-  <div style={{ width: "420px", margin: "16px auto" }}>
-    <div
-      style={{
-        height: "10px",
-        borderRadius: "999px",
-        background: "#222",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          width: `${progress}%`,
-          height: "100%",
-          background: "#22c55e",
-          transition: "width 0.2s ease",
-        }}
-      />
-    </div>
+        <div className="url-card">
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Colle une URL vidéo..."
+          />
 
-        <p>{Math.round(progress)}%</p>
-      </div>
-    )}
+          <button onClick={handleGetVideoInfo}>
+            Analyser
+          </button>
+        </div>
 
-    {progressText && <p>{progressText}</p>}
+        <div className="folder-row">
+          <button className="ghost-button" onClick={handleSelectFolder}>
+            Choisir un dossier
+          </button>
 
+          <span>
+            {downloadFolder || "Dossier par défaut : Téléchargements"}
+          </span>
+        </div>
+
+        {videoError && <p className="error">{videoError}</p>}
+
+        {videoInfo && (
+          <div className="video-card">
+            {videoInfo.thumbnail && (
+              <img src={videoInfo.thumbnail} alt={videoInfo.title} />
+            )}
+
+            <div className="video-content">
+              <p className="video-label">VIDÉO DÉTECTÉE</p>
+              <h2>{videoInfo.title}</h2>
+              <p>{videoInfo.uploader}</p>
+              <p>{formatDuration(videoInfo.duration)}</p>
+
+              <div className="actions">
+                <button onClick={handleDownloadMp4}>Télécharger MP4</button>
+                <button onClick={handleDownloadMp3}>Télécharger MP3</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {progress !== null && (
+          <div className="progress-block">
+            <div className="progress-track">
+              <div
+                className="progress-fill"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            <p>{Math.round(progress)}%</p>
+          </div>
+        )}
+
+        {downloadStatus && <p className="status">{downloadStatus}</p>}
+
+        {progressText && <p className="log-line">{progressText}</p>}
+
+        <div className="features">
+          <div>
+            <strong>LOCAL</strong>
+            <span>Aucun VPS</span>
+          </div>
+          <div>
+            <strong>MP4</strong>
+            <span>Haute qualité</span>
+          </div>
+          <div>
+            <strong>MP3</strong>
+            <span>Audio propre</span>
+          </div>
+          <div>
+            <strong>SAFE</strong>
+            <span>Sur ton PC</span>
+          </div>
+        </div>
+      </section>
     </main>
   );
-  
 }
 
 export default App;
