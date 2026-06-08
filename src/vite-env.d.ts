@@ -17,5 +17,8 @@ interface Window {
       success: boolean;
       output: string;
     }>;
+    getYtDlpVersion: () => Promise<{
+    version: string;
+    }>;
   };
 }

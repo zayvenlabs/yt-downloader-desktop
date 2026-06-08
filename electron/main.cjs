@@ -76,6 +76,39 @@ ipcMain.handle("app:run-local-test", async () => {
   });
 });
 
+ipcMain.handle("app:get-ytdlp-version", async () => {
+  return new Promise((resolve, reject) => {
+    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
+
+    const child = spawn(ytDlpPath, ["--version"]);
+
+    let output = "";
+    let error = "";
+
+    child.stdout.on("data", (data) => {
+      output += data.toString();
+    });
+
+    child.stderr.on("data", (data) => {
+      error += data.toString();
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject({
+          error: error || "yt-dlp failed",
+          code,
+        });
+        return;
+      }
+
+      resolve({
+        version: output.trim(),
+      });
+    });
+  });
+});
+
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {

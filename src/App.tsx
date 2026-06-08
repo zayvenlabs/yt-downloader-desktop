@@ -13,6 +13,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [localTest, setLocalTest] = useState("");
+  const [ytDlpVersion, setYtDlpVersion] = useState("");
 
   async function handlePing() {
     const response = await window.electronAPI.ping();
@@ -27,6 +28,11 @@ function App() {
   async function handleLocalTest() {
   const response = await window.electronAPI.runLocalTest();
   setLocalTest(response.output);
+  }
+
+  async function handleYtDlpVersion() {
+  const response = await window.electronAPI.getYtDlpVersion();
+  setYtDlpVersion(response.version);
   }
 
   return (
@@ -46,7 +52,10 @@ function App() {
       )}
 
       {localTest && <p>{localTest}</p>}
-      
+
+      <button onClick={handleYtDlpVersion}>Get yt-dlp Version</button>
+      {ytDlpVersion && <p>yt-dlp version: {ytDlpVersion}</p>}
+
     </main>
   );
 }
