@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const os = require("os");
+const { spawn } = require("child_process");
 const path = require("path");
 
 const isDev = !app.isPackaged;
@@ -41,6 +42,38 @@ ipcMain.handle("app:get-system-info", async () => {
     electron: process.versions.electron,
     homeDir: os.homedir(),
   };
+});
+
+ipcMain.handle("app:run-local-test", async () => {
+  return new Promise((resolve, reject) => {
+    const child = spawn("cmd", ["/c", "echo Local command works"]);
+
+    let output = "";
+    let error = "";
+
+    child.stdout.on("data", (data) => {
+      output += data.toString();
+    });
+
+    child.stderr.on("data", (data) => {
+      error += data.toString();
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject({
+          error: error || "Command failed",
+          code,
+        });
+        return;
+      }
+
+      resolve({
+        success: true,
+        output: output.trim(),
+      });
+    });
+  });
 });
 
 app.whenReady().then(createWindow);

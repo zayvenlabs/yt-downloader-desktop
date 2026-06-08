@@ -13,5 +13,9 @@ interface Window {
       electron: string;
       homeDir: string;
     }>;
+    runLocalTest: () => Promise<{
+      success: boolean;
+      output: string;
+    }>;
   };
 }

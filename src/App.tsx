@@ -12,6 +12,7 @@ type SystemInfo = {
 function App() {
   const [message, setMessage] = useState("");
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [localTest, setLocalTest] = useState("");
 
   async function handlePing() {
     const response = await window.electronAPI.ping();
@@ -23,12 +24,18 @@ function App() {
     setSystemInfo(response);
   }
 
+  async function handleLocalTest() {
+  const response = await window.electronAPI.runLocalTest();
+  setLocalTest(response.output);
+  }
+
   return (
     <main>
       <h1>YT Downloader Desktop</h1>
 
       <button onClick={handlePing}>Test Electron IPC</button>
       <button onClick={handleSystemInfo}>Get System Info</button>
+      <button onClick={handleLocalTest}>Run Local Command</button>
 
       {message && <p>{message}</p>}
 
@@ -37,6 +44,9 @@ function App() {
           {JSON.stringify(systemInfo, null, 2)}
         </pre>
       )}
+
+      {localTest && <p>{localTest}</p>}
+      
     </main>
   );
 }
