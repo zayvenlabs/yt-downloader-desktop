@@ -1,1 +1,5 @@
-// Preload file reserved for future secure IPC bridges.
+const { contextBridge, ipcRenderer } = require("electron");
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  ping: () => ipcRenderer.invoke("app:ping"),
+});

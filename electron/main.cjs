@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
 const isDev = !app.isPackaged;
@@ -24,6 +24,13 @@ function createWindow() {
     win.loadFile(path.join(__dirname, "../dist/index.html"));
   }
 }
+
+ipcMain.handle("app:ping", async () => {
+  return {
+    message: "Electron backend is ready ✅",
+    timestamp: new Date().toISOString(),
+  };
+});
 
 app.whenReady().then(createWindow);
 
