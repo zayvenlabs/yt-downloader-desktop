@@ -27,5 +27,9 @@ interface Window {
     thumbnail?: string;
     webpage_url?: string;
     }>;
+    downloadMp4: (url: string) => Promise<{
+    success: boolean;
+    filePath: string;
+    }>;
   };
 }

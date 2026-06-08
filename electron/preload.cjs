@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   runLocalTest: () => ipcRenderer.invoke("app:run-local-test"),
   getYtDlpVersion: () => ipcRenderer.invoke("app:get-ytdlp-version"),
   getVideoInfo: (url) => ipcRenderer.invoke("video:get-info", url),  
+  downloadMp4: (url) => ipcRenderer.invoke("video:download-mp4", url),
 });

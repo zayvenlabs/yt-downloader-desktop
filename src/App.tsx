@@ -17,6 +17,7 @@ function App() {
   const [url, setUrl] = useState("");
   const [videoInfo, setVideoInfo] = useState<any>(null);
   const [videoError, setVideoError] = useState("");
+  const [downloadStatus, setDownloadStatus] = useState("");
 
   async function handlePing() {
     const response = await window.electronAPI.ping();
@@ -48,6 +49,18 @@ function App() {
     } catch (error) {
     setVideoError("Impossible de récupérer les informations vidéo.");
     console.error(error);
+    }
+  }
+
+  async function handleDownloadMp4() {
+  setDownloadStatus("Téléchargement MP4 en cours...");
+
+  try {
+    const response = await window.electronAPI.downloadMp4(url);
+    setDownloadStatus(`Téléchargement terminé : ${response.filePath}`);
+    } catch (error) {
+    console.error(error);
+    setDownloadStatus("Téléchargement impossible.");
     }
   }
 
@@ -102,6 +115,9 @@ function App() {
           )}
         </div>
       )}
+
+      <button onClick={handleDownloadMp4}>Download MP4</button>
+      {downloadStatus && <p>{downloadStatus}</p>}
 
     </main>
   );

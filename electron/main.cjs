@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const os = require("os");
 const { spawn } = require("child_process");
 const path = require("path");
@@ -132,28 +132,65 @@ ipcMain.handle("video:get-info", async (_event, url) => {
 
     child.on("close", (code) => {
       if (code !== 0) {
-        reject({
-          error: error || "Impossible de récupérer les informations vidéo",
-          code,
-        });
+        reject({ error, code });
         return;
       }
 
-      try {
-        const info = JSON.parse(output);
+      const info = JSON.parse(output);
 
-        resolve({
-          title: info.title,
-          uploader: info.uploader,
-          duration: info.duration,
-          thumbnail: info.thumbnail,
-          webpage_url: info.webpage_url,
-        });
-      } catch {
-        reject({
-          error: "Réponse yt-dlp invalide",
-        });
+      resolve({
+        title: info.title,
+        uploader: info.uploader,
+        duration: info.duration,
+        thumbnail: info.thumbnail,
+        webpage_url: info.webpage_url,
+      });
+    });
+  });
+});
+
+ipcMain.handle("video:download-mp4", async (_event, url) => {
+  return new Promise((resolve, reject) => {
+    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
+    const ffmpegDir = path.join(__dirname, "../binaries");
+
+    const downloadsDir = path.join(app.getPath("downloads"), "YT Downloader Desktop");
+    require("fs").mkdirSync(downloadsDir, { recursive: true });
+
+    const outputTemplate = path.join(downloadsDir, "%(title).80s.%(ext)s");
+
+    const child = spawn(ytDlpPath, [
+      "--ffmpeg-location",
+      ffmpegDir,
+      "-f",
+      "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]/best",
+      "--merge-output-format",
+      "mp4",
+      "--no-playlist",
+      "-o",
+      outputTemplate,
+      url,
+    ]);
+
+    let error = "";
+
+    child.stderr.on("data", (data) => {
+      error += data.toString();
+      console.log(data.toString());
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject({ error, code });
+        return;
       }
+
+      shell.openPath(downloadsDir);
+
+      resolve({
+        success: true,
+        filePath: downloadsDir,
+      });
     });
   });
 });
