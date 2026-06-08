@@ -109,6 +109,55 @@ ipcMain.handle("app:get-ytdlp-version", async () => {
   });
 });
 
+ipcMain.handle("video:get-info", async (_event, url) => {
+  return new Promise((resolve, reject) => {
+    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
+
+    const child = spawn(ytDlpPath, [
+      "--dump-json",
+      "--no-playlist",
+      url,
+    ]);
+
+    let output = "";
+    let error = "";
+
+    child.stdout.on("data", (data) => {
+      output += data.toString();
+    });
+
+    child.stderr.on("data", (data) => {
+      error += data.toString();
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject({
+          error: error || "Impossible de récupérer les informations vidéo",
+          code,
+        });
+        return;
+      }
+
+      try {
+        const info = JSON.parse(output);
+
+        resolve({
+          title: info.title,
+          uploader: info.uploader,
+          duration: info.duration,
+          thumbnail: info.thumbnail,
+          webpage_url: info.webpage_url,
+        });
+      } catch {
+        reject({
+          error: "Réponse yt-dlp invalide",
+        });
+      }
+    });
+  });
+});
+
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {

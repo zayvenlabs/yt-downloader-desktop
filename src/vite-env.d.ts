@@ -20,5 +20,12 @@ interface Window {
     getYtDlpVersion: () => Promise<{
     version: string;
     }>;
+    getVideoInfo: (url: string) => Promise<{
+    title: string;
+    uploader?: string;
+    duration?: number;
+    thumbnail?: string;
+    webpage_url?: string;
+    }>;
   };
 }

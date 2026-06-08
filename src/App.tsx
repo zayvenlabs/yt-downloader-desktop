@@ -14,6 +14,9 @@ function App() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [localTest, setLocalTest] = useState("");
   const [ytDlpVersion, setYtDlpVersion] = useState("");
+  const [url, setUrl] = useState("");
+  const [videoInfo, setVideoInfo] = useState<any>(null);
+  const [videoError, setVideoError] = useState("");
 
   async function handlePing() {
     const response = await window.electronAPI.ping();
@@ -33,6 +36,19 @@ function App() {
   async function handleYtDlpVersion() {
   const response = await window.electronAPI.getYtDlpVersion();
   setYtDlpVersion(response.version);
+  }
+
+  async function handleGetVideoInfo() {
+  setVideoError("");
+  setVideoInfo(null);
+
+  try {
+    const response = await window.electronAPI.getVideoInfo(url);
+    setVideoInfo(response);
+    } catch (error) {
+    setVideoError("Impossible de récupérer les informations vidéo.");
+    console.error(error);
+    }
   }
 
   return (
@@ -55,6 +71,37 @@ function App() {
 
       <button onClick={handleYtDlpVersion}>Get yt-dlp Version</button>
       {ytDlpVersion && <p>yt-dlp version: {ytDlpVersion}</p>}
+
+      <div>
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Colle une URL vidéo"
+          style={{ width: "420px", padding: "8px" }}
+        />
+
+        <button onClick={handleGetVideoInfo}>
+          Get Video Info
+        </button>
+      </div>
+
+      {videoError && <p>{videoError}</p>}
+
+      {videoInfo && (
+        <div>
+          <h2>{videoInfo.title}</h2>
+          <p>{videoInfo.uploader}</p>
+          <p>{videoInfo.duration}s</p>
+
+          {videoInfo.thumbnail && (
+            <img
+              src={videoInfo.thumbnail}
+              alt={videoInfo.title}
+              style={{ width: "320px", borderRadius: "12px" }}
+            />
+          )}
+        </div>
+      )}
 
     </main>
   );
