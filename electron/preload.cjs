@@ -10,4 +10,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   downloadMp3: (url, folder) => ipcRenderer.invoke("video:download-mp3", { url, folder }),
   selectDownloadFolder: () =>
   ipcRenderer.invoke("app:select-download-folder"),
+  onDownloadProgress: (callback) => {
+  ipcRenderer.on("download:progress", (_event, data) => callback(data));
+  },
+  removeDownloadProgressListener: () => {
+  ipcRenderer.removeAllListeners("download:progress");
+  },
 });

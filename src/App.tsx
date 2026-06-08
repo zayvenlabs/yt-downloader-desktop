@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 type SystemInfo = {
@@ -19,6 +19,8 @@ function App() {
   const [videoError, setVideoError] = useState("");
   const [downloadStatus, setDownloadStatus] = useState("");
   const [downloadFolder, setDownloadFolder] = useState("");
+  const [progress, setProgress] = useState<number | null>(null);
+  const [progressText, setProgressText] = useState("");
 
   async function handlePing() {
     const response = await window.electronAPI.ping();
@@ -54,6 +56,8 @@ function App() {
   }
 
   async function handleDownloadMp4() {
+  setProgress(0);
+  setProgressText("");
   setDownloadStatus("Téléchargement MP4 en cours...");
 
   try {
@@ -66,6 +70,8 @@ function App() {
   }
 
   async function handleDownloadMp3() {
+  setProgress(0);
+  setProgressText("");
   setDownloadStatus("Téléchargement MP3 en cours...");
 
   try {
@@ -84,6 +90,20 @@ function App() {
       setDownloadFolder(folder);
     }
   }
+
+  useEffect(() => {
+  window.electronAPI.onDownloadProgress((data) => {
+    if (data.percent !== null) {
+      setProgress(data.percent);
+    }
+
+    setProgressText(data.text);
+  });
+
+  return () => {
+    window.electronAPI.removeDownloadProgressListener();
+  };
+  }, []);
 
   return (
     <main>
@@ -151,6 +171,32 @@ function App() {
           Download folder: {downloadFolder}
         </p>
       )}
+
+      {progress !== null && (
+  <div style={{ width: "420px", margin: "16px auto" }}>
+    <div
+      style={{
+        height: "10px",
+        borderRadius: "999px",
+        background: "#222",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          width: `${progress}%`,
+          height: "100%",
+          background: "#22c55e",
+          transition: "width 0.2s ease",
+        }}
+      />
+    </div>
+
+        <p>{Math.round(progress)}%</p>
+      </div>
+    )}
+
+    {progressText && <p>{progressText}</p>}
 
     </main>
   );

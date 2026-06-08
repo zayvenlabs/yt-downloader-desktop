@@ -36,5 +36,14 @@ interface Window {
     filePath: string;
     }>;
     selectDownloadFolder: () => Promise<string | null>;
+    onDownloadProgress: (
+    callback: (data: {
+        type: "mp4" | "mp3";
+        percent: number | null;
+        text: string;
+    }) => void
+    ) => void;
+
+    removeDownloadProgressListener: () => void;
   };
 }

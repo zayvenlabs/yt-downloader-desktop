@@ -35,6 +35,16 @@ function createWindow() {
   }
 }
 
+function sendDownloadProgress(event, type, text) {
+  const percentMatch = text.match(/(\d+(?:\.\d+)?)%/);
+
+  event.sender.send("download:progress", {
+    type,
+    percent: percentMatch ? Number(percentMatch[1]) : null,
+    text: text.trim(),
+  });
+}
+
 ipcMain.handle("app:ping", async () => {
   return {
     message: "Electron backend is ready ✅",
@@ -89,10 +99,6 @@ ipcMain.handle("app:get-ytdlp-version", async () => {
 
     let output = "";
     let error = "";
-
-    child.stdout.on("data", (data) => {
-      output += data.toString();
-    });
 
     child.stderr.on("data", (data) => {
       error += data.toString();
@@ -171,6 +177,9 @@ ipcMain.handle("video:download-mp4", async (_event, { url, folder }) => {
     const outputTemplate = path.join(downloadsDir, "%(title).80s.%(ext)s");
 
     const child = spawn(ytDlpPath, [
+      "--newline",
+      "--js-runtimes",
+      "node",
       "--ffmpeg-location",
       ffmpegDir,
       "-f",
@@ -178,6 +187,7 @@ ipcMain.handle("video:download-mp4", async (_event, { url, folder }) => {
       "--merge-output-format",
       "mp4",
       "--no-playlist",
+      "--restrict-filenames",
       "-o",
       outputTemplate,
       url,
@@ -185,9 +195,23 @@ ipcMain.handle("video:download-mp4", async (_event, { url, folder }) => {
 
     let error = "";
 
+    child.stdout.on("data", (data) => {
+      sendDownloadProgress(_event, "mp4", data.toString());
+    });
+
     child.stderr.on("data", (data) => {
-      error += data.toString();
-      console.log(data.toString());
+      const text = data.toString();
+      error += text;
+      console.log(text);
+      sendDownloadProgress(_event, "mp4", text);
+
+      const percentMatch = text.match(/(\d+(?:\.\d+)?)%/);
+
+      _event.sender.send("download:progress", {
+        type: "mp4",
+        percent: percentMatch ? Number(percentMatch[1]) : null,
+        text: text.trim(),
+      });
     });
 
     child.on("close", (code) => {
@@ -219,6 +243,9 @@ ipcMain.handle("video:download-mp3", async (_event, { url, folder }) => {
     const outputTemplate = path.join(downloadsDir, "%(title).80s.%(ext)s");
 
     const child = spawn(ytDlpPath, [
+      "--newline",
+      "--js-runtimes",
+      "node",
       "--ffmpeg-location",
       ffmpegDir,
       "-x",
@@ -226,7 +253,9 @@ ipcMain.handle("video:download-mp3", async (_event, { url, folder }) => {
       "mp3",
       "--audio-quality",
       "0",
+      "--no-keep-video",
       "--no-playlist",
+      "--restrict-filenames",
       "-o",
       outputTemplate,
       url,
@@ -234,10 +263,23 @@ ipcMain.handle("video:download-mp3", async (_event, { url, folder }) => {
 
     let error = "";
 
-    child.stderr.on("data", (data) => {
-      error += data.toString();
-      console.log(data.toString());
+    child.stdout.on("data", (data) => {
+    sendDownloadProgress(_event, "mp3", data.toString());
     });
+
+    child.stderr.on("data", (data) => {
+    const text = data.toString();
+    error += text;
+    console.log(text);
+
+  const percentMatch = text.match(/(\d+(?:\.\d+)?)%/);
+
+  _event.sender.send("download:progress", {
+    type: "mp3",
+    percent: percentMatch ? Number(percentMatch[1]) : null,
+    text: text.trim(),
+  });
+});
 
     child.on("close", (code) => {
       if (code !== 0) {
