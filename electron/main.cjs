@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
+const os = require("os");
 const path = require("path");
 
 const isDev = !app.isPackaged;
@@ -29,6 +30,16 @@ ipcMain.handle("app:ping", async () => {
   return {
     message: "Electron backend is ready ✅",
     timestamp: new Date().toISOString(),
+  };
+});
+
+ipcMain.handle("app:get-system-info", async () => {
+  return {
+    platform: process.platform,
+    arch: process.arch,
+    node: process.versions.node,
+    electron: process.versions.electron,
+    homeDir: os.homedir(),
   };
 });
 

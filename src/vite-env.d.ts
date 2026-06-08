@@ -6,5 +6,12 @@ interface Window {
       message: string;
       timestamp: string;
     }>;
+    getSystemInfo: () => Promise<{
+      platform: string;
+      arch: string;
+      node: string;
+      electron: string;
+      homeDir: string;
+    }>;
   };
 }
