@@ -195,6 +195,53 @@ ipcMain.handle("video:download-mp4", async (_event, url) => {
   });
 });
 
+ipcMain.handle("video:download-mp3", async (_event, url) => {
+  return new Promise((resolve, reject) => {
+    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
+    const ffmpegDir = path.join(__dirname, "../binaries");
+
+    const downloadsDir = path.join(app.getPath("downloads"), "YT Downloader Desktop");
+    require("fs").mkdirSync(downloadsDir, { recursive: true });
+
+    const outputTemplate = path.join(downloadsDir, "%(title).80s.%(ext)s");
+
+    const child = spawn(ytDlpPath, [
+      "--ffmpeg-location",
+      ffmpegDir,
+      "-x",
+      "--audio-format",
+      "mp3",
+      "--audio-quality",
+      "0",
+      "--no-playlist",
+      "-o",
+      outputTemplate,
+      url,
+    ]);
+
+    let error = "";
+
+    child.stderr.on("data", (data) => {
+      error += data.toString();
+      console.log(data.toString());
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject({ error, code });
+        return;
+      }
+
+      shell.openPath(downloadsDir);
+
+      resolve({
+        success: true,
+        filePath: downloadsDir,
+      });
+    });
+  });
+});
+
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {

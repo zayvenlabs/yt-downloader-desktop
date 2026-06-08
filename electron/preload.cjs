@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getYtDlpVersion: () => ipcRenderer.invoke("app:get-ytdlp-version"),
   getVideoInfo: (url) => ipcRenderer.invoke("video:get-info", url),  
   downloadMp4: (url) => ipcRenderer.invoke("video:download-mp4", url),
+  downloadMp3: (url) => ipcRenderer.invoke("video:download-mp3", url),
 });

@@ -64,6 +64,18 @@ function App() {
     }
   }
 
+  async function handleDownloadMp3() {
+  setDownloadStatus("Téléchargement MP3 en cours...");
+
+  try {
+      const response = await window.electronAPI.downloadMp3(url);
+      setDownloadStatus(`Téléchargement MP3 terminé : ${response.filePath}`);
+    } catch (error) {
+      console.error(error);
+      setDownloadStatus("Téléchargement MP3 impossible.");
+    }
+  }
+
   return (
     <main>
       <h1>YT Downloader Desktop</h1>
@@ -119,8 +131,11 @@ function App() {
       <button onClick={handleDownloadMp4}>Download MP4</button>
       {downloadStatus && <p>{downloadStatus}</p>}
 
+      <button onClick={handleDownloadMp3}>Download MP3</button>
+
     </main>
   );
+  
 }
 
 export default App;

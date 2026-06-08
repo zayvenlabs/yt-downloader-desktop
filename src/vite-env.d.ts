@@ -31,5 +31,9 @@ interface Window {
     success: boolean;
     filePath: string;
     }>;
+    downloadMp3: (url: string) => Promise<{
+    success: boolean;
+    filePath: string;
+    }>;
   };
 }
