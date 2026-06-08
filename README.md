@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# YT Downloader Desktop
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern Windows desktop application for downloading online videos and audio locally.
 
-Currently, two official plugins are available:
+![YT Downloader Desktop](public/preview-ytdl.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Video preview before download
+- MP4 download
+- MP3 extraction
+- Custom download folder
+- Download progress bar
+- Local processing
+- Bundled yt-dlp
+- Bundled ffmpeg
+- No remote server required
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Screenshots
 
-## Expanding the ESLint configuration
+YT Downloader Desktop provides a clean and modern interface inspired by premium desktop applications.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Download
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Latest release:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+https://github.com/zayvenlabs/yt-downloader-desktop/releases/latest
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Tech Stack
+
+- React
+- TypeScript
+- Electron
+- yt-dlp
+- FFmpeg
+- Electron Builder
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Start Vite:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Start Electron:
+
+```bash
+npm run electron
+```
+
+Build Windows executable:
+
+```bash
+npm run dist:win
+```
+
+## Project Structure
+
+```txt
+electron/
+├── main.cjs
+├── preload.cjs
+
+src/
+├── App.tsx
+├── App.css
+├── index.css
+
+binaries/
+├── yt-dlp.exe
+├── ffmpeg.exe
+├── ffprobe.exe
+```
+
+## Disclaimer
+
+This software is provided for open source based on [Yt-dtlp.](https://github.com/yt-dlp)
+
+Users are responsible for ensuring they have the necessary rights and permissions to download or process content.
+
+## License
+
+MIT License
+
+---
+
+Developed by Zayven Labs
