@@ -1,1 +1,1 @@
-// vide pour le moment
+// Preload file reserved for future secure IPC bridges.
