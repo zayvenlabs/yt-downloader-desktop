@@ -1,16 +1,17 @@
 {
   "name": "yt-downloader-desktop",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "main": "electron/main.cjs",
-  "electron": "electron .",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron": "electron ."
+    "electron": "electron .",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
     "react": "^19.2.6",
@@ -31,5 +32,33 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"
+  },
+  "build": {
+    "appId": "com.zayvenlabs.ytdownloader",
+    "productName": "YT Downloader Desktop",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "binaries",
+        "to": "binaries"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

@@ -38,9 +38,15 @@ function App() {
       const response = await window.electronAPI.getVideoInfo(url);
       setVideoInfo(response);
     } catch (error) {
-      console.error(error);
-      setVideoError("Impossible de récupérer les informations vidéo.");
-    }
+  console.error(error);
+
+  const message =
+    error instanceof Error
+      ? error.message
+      : "Impossible de récupérer les informations vidéo.";
+
+  setVideoError(message);
+}
   }
 
   async function handleDownloadMp4() {

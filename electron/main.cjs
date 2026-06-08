@@ -13,6 +13,14 @@ const path = require("path");
 
 const isDev = !app.isPackaged;
 
+function getBinaryPath(binaryName) {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "binaries", binaryName);
+  }
+
+  return path.join(__dirname, "../binaries", binaryName);
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
@@ -93,7 +101,7 @@ ipcMain.handle("app:run-local-test", async () => {
 
 ipcMain.handle("app:get-ytdlp-version", async () => {
   return new Promise((resolve, reject) => {
-    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
+    const ytDlpPath = getBinaryPath("yt-dlp.exe");
 
     const child = spawn(ytDlpPath, ["--version"]);
 
@@ -119,9 +127,11 @@ ipcMain.handle("app:get-ytdlp-version", async () => {
 
 ipcMain.handle("video:get-info", async (_event, url) => {
   return new Promise((resolve, reject) => {
-    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
+    const ytDlpPath = getBinaryPath("yt-dlp.exe");
 
     const child = spawn(ytDlpPath, [
+      "--js-runtimes",
+      "node",
       "--dump-json",
       "--no-playlist",
       url,
@@ -140,7 +150,7 @@ ipcMain.handle("video:get-info", async (_event, url) => {
 
     child.on("close", (code) => {
       if (code !== 0) {
-        reject({ error, code });
+        reject(new Error(error || `yt-dlp exited with code ${code}`));
         return;
       }
 
@@ -155,10 +165,7 @@ ipcMain.handle("video:get-info", async (_event, url) => {
           webpage_url: info.webpage_url,
         });
       } catch {
-        reject({
-          error: "Invalid yt-dlp JSON response",
-          code,
-        });
+        reject(new Error("Invalid yt-dlp JSON response"));
       }
     });
   });
@@ -166,8 +173,10 @@ ipcMain.handle("video:get-info", async (_event, url) => {
 
 ipcMain.handle("video:download-mp4", async (_event, { url, folder }) => {
   return new Promise((resolve, reject) => {
-    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
-    const ffmpegDir = path.join(__dirname, "../binaries");
+    const ytDlpPath = getBinaryPath("yt-dlp.exe");
+    const ffmpegDir = app.isPackaged
+  ? path.join(process.resourcesPath, "binaries")
+  : path.join(__dirname, "../binaries");
 
     const downloadsDir =
       folder || path.join(app.getPath("downloads"), "YT Downloader Desktop");
@@ -232,8 +241,10 @@ ipcMain.handle("video:download-mp4", async (_event, { url, folder }) => {
 
 ipcMain.handle("video:download-mp3", async (_event, { url, folder }) => {
   return new Promise((resolve, reject) => {
-    const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
-    const ffmpegDir = path.join(__dirname, "../binaries");
+    const ytDlpPath = getBinaryPath("yt-dlp.exe");
+    const ffmpegDir = app.isPackaged
+  ? path.join(process.resourcesPath, "binaries")
+  : path.join(__dirname, "../binaries");
 
     const downloadsDir =
       folder || path.join(app.getPath("downloads"), "YT Downloader Desktop");
