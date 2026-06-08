@@ -1,5 +1,13 @@
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  shell,
+  dialog,
+} = require("electron");
+
 const os = require("os");
+const fs = require("fs");
 const { spawn } = require("child_process");
 const path = require("path");
 
@@ -61,10 +69,7 @@ ipcMain.handle("app:run-local-test", async () => {
 
     child.on("close", (code) => {
       if (code !== 0) {
-        reject({
-          error: error || "Command failed",
-          code,
-        });
+        reject({ error: error || "Command failed", code });
         return;
       }
 
@@ -95,10 +100,7 @@ ipcMain.handle("app:get-ytdlp-version", async () => {
 
     child.on("close", (code) => {
       if (code !== 0) {
-        reject({
-          error: error || "yt-dlp failed",
-          code,
-        });
+        reject({ error: error || "yt-dlp failed", code });
         return;
       }
 
@@ -136,26 +138,35 @@ ipcMain.handle("video:get-info", async (_event, url) => {
         return;
       }
 
-      const info = JSON.parse(output);
+      try {
+        const info = JSON.parse(output);
 
-      resolve({
-        title: info.title,
-        uploader: info.uploader,
-        duration: info.duration,
-        thumbnail: info.thumbnail,
-        webpage_url: info.webpage_url,
-      });
+        resolve({
+          title: info.title,
+          uploader: info.uploader,
+          duration: info.duration,
+          thumbnail: info.thumbnail,
+          webpage_url: info.webpage_url,
+        });
+      } catch {
+        reject({
+          error: "Invalid yt-dlp JSON response",
+          code,
+        });
+      }
     });
   });
 });
 
-ipcMain.handle("video:download-mp4", async (_event, url) => {
+ipcMain.handle("video:download-mp4", async (_event, { url, folder }) => {
   return new Promise((resolve, reject) => {
     const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
     const ffmpegDir = path.join(__dirname, "../binaries");
 
-    const downloadsDir = path.join(app.getPath("downloads"), "YT Downloader Desktop");
-    require("fs").mkdirSync(downloadsDir, { recursive: true });
+    const downloadsDir =
+      folder || path.join(app.getPath("downloads"), "YT Downloader Desktop");
+
+    fs.mkdirSync(downloadsDir, { recursive: true });
 
     const outputTemplate = path.join(downloadsDir, "%(title).80s.%(ext)s");
 
@@ -195,13 +206,15 @@ ipcMain.handle("video:download-mp4", async (_event, url) => {
   });
 });
 
-ipcMain.handle("video:download-mp3", async (_event, url) => {
+ipcMain.handle("video:download-mp3", async (_event, { url, folder }) => {
   return new Promise((resolve, reject) => {
     const ytDlpPath = path.join(__dirname, "../binaries/yt-dlp.exe");
     const ffmpegDir = path.join(__dirname, "../binaries");
 
-    const downloadsDir = path.join(app.getPath("downloads"), "YT Downloader Desktop");
-    require("fs").mkdirSync(downloadsDir, { recursive: true });
+    const downloadsDir =
+      folder || path.join(app.getPath("downloads"), "YT Downloader Desktop");
+
+    fs.mkdirSync(downloadsDir, { recursive: true });
 
     const outputTemplate = path.join(downloadsDir, "%(title).80s.%(ext)s");
 
@@ -240,6 +253,18 @@ ipcMain.handle("video:download-mp3", async (_event, url) => {
       });
     });
   });
+});
+
+ipcMain.handle("app:select-download-folder", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  return result.filePaths[0];
 });
 
 app.whenReady().then(createWindow);

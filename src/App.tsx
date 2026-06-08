@@ -18,6 +18,7 @@ function App() {
   const [videoInfo, setVideoInfo] = useState<any>(null);
   const [videoError, setVideoError] = useState("");
   const [downloadStatus, setDownloadStatus] = useState("");
+  const [downloadFolder, setDownloadFolder] = useState("");
 
   async function handlePing() {
     const response = await window.electronAPI.ping();
@@ -56,7 +57,7 @@ function App() {
   setDownloadStatus("Téléchargement MP4 en cours...");
 
   try {
-    const response = await window.electronAPI.downloadMp4(url);
+    const response = await window.electronAPI.downloadMp4(url, downloadFolder);
     setDownloadStatus(`Téléchargement terminé : ${response.filePath}`);
     } catch (error) {
     console.error(error);
@@ -68,11 +69,19 @@ function App() {
   setDownloadStatus("Téléchargement MP3 en cours...");
 
   try {
-      const response = await window.electronAPI.downloadMp3(url);
+      const response = await window.electronAPI.downloadMp3(url, downloadFolder);
       setDownloadStatus(`Téléchargement MP3 terminé : ${response.filePath}`);
     } catch (error) {
       console.error(error);
       setDownloadStatus("Téléchargement MP3 impossible.");
+    }
+  }
+
+  async function handleSelectFolder() {
+    const folder = await window.electronAPI.selectDownloadFolder();
+
+    if (folder) {
+      setDownloadFolder(folder);
     }
   }
 
@@ -132,6 +141,16 @@ function App() {
       {downloadStatus && <p>{downloadStatus}</p>}
 
       <button onClick={handleDownloadMp3}>Download MP3</button>
+
+      <button onClick={handleSelectFolder}>
+        Select Download Folder
+      </button>
+
+      {downloadFolder && (
+        <p>
+          Download folder: {downloadFolder}
+        </p>
+      )}
 
     </main>
   );

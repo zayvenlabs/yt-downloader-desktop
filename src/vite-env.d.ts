@@ -27,13 +27,14 @@ interface Window {
     thumbnail?: string;
     webpage_url?: string;
     }>;
-    downloadMp4: (url: string) => Promise<{
+    downloadMp4: (url: string, folder?: string) => Promise<{
     success: boolean;
     filePath: string;
     }>;
-    downloadMp3: (url: string) => Promise<{
+    downloadMp3: (url: string, folder?: string) => Promise<{
     success: boolean;
     filePath: string;
     }>;
+    selectDownloadFolder: () => Promise<string | null>;
   };
 }
